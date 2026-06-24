@@ -3,7 +3,8 @@
 Draw a rectangle on an infinite canvas, **speak** what you want, and an AI agent draws it
 inside that region. Drag several rectangles in a row and they queue up, each drawn in turn.
 
-This is built on [tldraw](https://tldraw.dev)'s official **Agent starter kit**, extended with a
+This is built on [tldraw](https://tldraw.dev)'s official
+[**Agent starter kit**](https://github.com/tldraw/agent-template) (MIT licensed), extended with a
 speech-driven "capture a region and describe it" workflow.
 
 ![Agent draw demo](docs/demo.gif)
@@ -111,12 +112,21 @@ npx wrangler deploy
 Set the production secrets with `npx wrangler secret put MISTRAL_API_KEY` (and `OPENROUTER_API_KEY`,
 etc.) rather than committing `.dev.vars`.
 
+**tldraw license for production.** The tldraw SDK is free in development but requires a license key
+for any public deployment (see Credits and license below). Get one from
+[tldraw.dev/pricing](https://tldraw.dev/pricing), a free 100-day trial, a free hobby license (shows
+a "made with tldraw" watermark), or a commercial license, and pass it to the `Tldraw` component via
+the `licenseKey` prop in `client/App.tsx`.
+
 ## Credits and license
 
-Built on the [tldraw Agent starter kit](https://tldraw.dev), © tldraw Inc., MIT licensed. The
-area-capture "Agent draw" additions are © Ritza. This repository's source is MIT licensed, see
-[LICENSE.md](./LICENSE.md).
+Built on tldraw's [Agent starter kit](https://github.com/tldraw/agent-template), © tldraw Inc., MIT
+licensed. The area-capture "Agent draw" additions are © Ritza. This repository's source is MIT
+licensed, see [LICENSE.md](./LICENSE.md).
 
-The `tldraw` SDK dependency itself is distributed under the
-[tldraw license](https://github.com/tldraw/tldraw/blob/main/LICENSE.md) (not MIT); using tldraw in
-your own product may require a license or the tldraw watermark. See [tldraw.dev](https://tldraw.dev).
+The `tldraw` **SDK dependency** itself is **not** MIT, it is distributed under the proprietary
+[tldraw license](https://github.com/tldraw/tldraw/blob/main/LICENSE.md). You can develop with it for
+free, but a public production deployment needs a tldraw license key (free 100-day trial, free hobby
+license with a "made with tldraw" watermark, or a commercial license). See
+[tldraw.dev/pricing](https://tldraw.dev/pricing). The MIT license on this repo covers its own source
+code, not the tldraw SDK.

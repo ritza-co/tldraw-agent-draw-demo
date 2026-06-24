@@ -11,12 +11,24 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 ---
 
-This project is built on the tldraw Agent starter kit (https://tldraw.dev), which
-is MIT licensed. The starter-kit portions remain under tldraw Inc.'s copyright
-above; the area-capture modifications are under Ritza's copyright.
+This project is built on tldraw's official Agent starter kit
+(https://github.com/tldraw/agent-template), which is MIT licensed. The starter-kit
+portions remain under tldraw Inc.'s copyright above; the area-capture modifications
+are under Ritza's copyright.
 
-Note: this project depends on the `tldraw` SDK as an npm package. The tldraw SDK
-itself is distributed under the tldraw license (https://github.com/tldraw/tldraw/blob/main/LICENSE.md),
-not MIT. Using tldraw in your own product may require a license or the tldraw
-watermark. See https://tldraw.dev for details. The MIT license above covers this
-repository's source code, not the tldraw SDK dependency.
+IMPORTANT, the MIT license above covers this repository's SOURCE CODE only, not the
+tldraw SDK it depends on. This project depends on the `tldraw` SDK npm package, which
+is distributed under the proprietary tldraw license
+(https://github.com/tldraw/tldraw/blob/main/LICENSE.md), NOT MIT. Under that license:
+
+- You may use the SDK freely in development.
+- Using it in a production environment (any public/end-user-facing deployment)
+  requires a tldraw license key. Options (see https://tldraw.dev/pricing):
+  - 100-day free trial: production use, no watermark.
+  - Free hobby license: for personal/prototype projects, shows a "made with tldraw"
+    watermark on the canvas.
+  - Commercial license: paid, for production products.
+- The license key is passed via the SDK's `licenseKey` prop.
+
+So you can clone, modify, and run this repo for free, but deploying the demo publicly
+needs one of the tldraw licenses above.
