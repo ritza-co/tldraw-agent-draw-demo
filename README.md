@@ -122,9 +122,10 @@ a "made with tldraw" watermark), or a commercial license. The app reads it from
 
 ## Credits and license
 
-Built on tldraw's [Agent starter kit](https://github.com/tldraw/agent-template), © tldraw Inc., MIT
-licensed. The area-capture "Agent draw" additions are © Ritza. This repository's source is MIT
-licensed, see [LICENSE.md](./LICENSE.md).
+Built on tldraw's [Agent starter kit](https://github.com/tldraw/agent-template), © tldraw Inc.,
+[MIT licensed](https://github.com/tldraw/agent-template/blob/main/LICENSE.md). The area-capture
+"Agent draw" additions are © Ritza. This repository's source is MIT licensed, see
+[LICENSE.md](./LICENSE.md).
 
 The `tldraw` **SDK dependency** itself is **not** MIT, it is distributed under the proprietary
 [tldraw license](https://github.com/tldraw/tldraw/blob/main/LICENSE.md). You can develop with it for
