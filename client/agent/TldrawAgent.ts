@@ -32,7 +32,7 @@ import { AgentUserActionTracker } from './managers/AgentUserActionTracker'
  * whenever it emits a `review` action; some models review on every turn and
  * never stop on their own, so without a cap a single request can loop forever.
  */
-const MAX_PROMPT_TURNS = 6
+const MAX_PROMPT_TURNS = 4
 
 /**
  * The persisted state of an agent.
