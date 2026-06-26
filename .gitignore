@@ -8,13 +8,11 @@ dist/
 .tsbuild/
 *.tsbuildinfo
 
-# Secrets (Cloudflare Worker local vars)
+# Secrets
 .dev.vars
 *.dev.vars
 .env
-
-# Cloudflare wrangler local state
-.wrangler/
+.env.server
 
 # Logs
 *.log

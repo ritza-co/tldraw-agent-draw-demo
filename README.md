@@ -56,44 +56,53 @@ Key pieces (everything new lives alongside the unchanged starter-kit code):
 | `client/capture/requestDrawInArea.ts` | Sends the captured-area request through the full `agent.prompt` loop so the drawing finishes in one turn. |
 | `client/speech/AreaRecorder.ts` | Minimal one-clip mic recorder. |
 | `client/components/AreaCaptureOverlay.tsx` | Dashed rectangle + status pill per capture. |
-| `worker/routes/transcribe.ts` | Worker route that forwards audio to Mistral Voxtral. |
+| `server/server.ts` | Node backend serving the static client plus the `/transcribe` (Mistral Voxtral) and `/stream` (agent SSE) routes. |
 | `worker/prompt/sections/rules-section.ts` | The "Drawing inside a captured area" prompt rules. |
 
 ## Environment setup
 
-This app has two backends behind the Cloudflare Worker: an LLM provider for the agent and a
-speech-to-text provider for transcription.
+> This branch (`no-cloudflare`) runs the backend as a plain Node server instead of a Cloudflare
+> Worker, so it can be self-hosted on any VPS. See [Deployment](#deployment).
 
-Copy the example env file and fill in keys:
+The backend needs two things: an LLM provider for the agent and a speech-to-text provider for
+transcription. Server-side secrets live in `.env.server` (read by the Node process); the public
+tldraw license key lives in `.env` (inlined into the client bundle at build time).
 
 ```bash
-cp .dev.vars.example .dev.vars
+cp .env.server.example .env.server   # secret provider keys
+cp .env.example .env                  # public VITE_TLDRAW_LICENSE_KEY
 ```
 
 Required out of the box:
 
+- `ANTHROPIC_API_KEY` — the default agent model is `claude-sonnet-4-5`
+  ([Anthropic](https://console.anthropic.com/)).
 - `MISTRAL_API_KEY` — speech-to-text ([Mistral](https://console.mistral.ai/)).
-- `OPENROUTER_API_KEY` — the default agent model is an OpenRouter-hosted Gemini model
-  ([OpenRouter](https://openrouter.ai/keys)).
 
 Optional (only if you switch the model picker to a native provider):
-`ANTHROPIC_API_KEY`, `GOOGLE_API_KEY`, `OPENAI_API_KEY`.
+`GOOGLE_API_KEY`, `OPENAI_API_KEY`, `OPENROUTER_API_KEY`.
 
 ## Local development
 
+The client (Vite) and the Node backend run as two processes. The Vite dev server proxies nothing,
+so point the client at the backend by running both and opening the backend's URL, or simply build
+once and run the server:
+
 ```bash
 npm install
-npm run dev
+npm run build                              # client → dist/
+node --env-file=.env.server node_modules/.bin/tsx server/server.ts
 ```
 
-Open the printed local URL (usually `http://localhost:5173/`), pick **Agent draw**, and drag a
-rectangle.
+Open `http://localhost:3003/`, pick **Agent draw**, and drag a rectangle. For pure front-end
+iteration, `npm run dev` serves the client alone (the `/stream` and `/transcribe` calls need the
+Node server running on the same origin).
 
 ## Model selection
 
-The model is chosen in the chat panel's dropdown and defaults to `google/gemini-2.5-flash` (via
-OpenRouter), set by `DEFAULT_MODEL_NAME` in `shared/models.ts`. This model reliably finishes a
-complete in-bounds drawing in a single prompt.
+The model is chosen in the chat panel's dropdown and defaults to `claude-sonnet-4-5` (Anthropic),
+set by `DEFAULT_MODEL_NAME` in `shared/models.ts`. Each provider in the dropdown needs its
+corresponding key in `.env.server`; selecting a model whose key is unset will error.
 
 Note: your selection is persisted to `localStorage` per agent, so once you pick a model in a
 browser, that saved choice is restored on reload and overrides the code default. Clear the app's
@@ -101,15 +110,38 @@ browser, that saved choice is restored on reload and overrides the code default.
 
 ## Deployment
 
-The app is a Cloudflare Worker (serving the built client and the `/stream` + `/transcribe` routes).
+This branch ships a self-hosted Node backend (`server/server.ts`) — no Cloudflare account, Worker,
+or Durable Object required. The server serves the built client from `dist/` and handles the
+`/stream` and `/transcribe` routes. Put any reverse proxy in front for TLS.
 
 ```bash
-npm run build
-npx wrangler deploy
+# On the server:
+npm ci
+VITE_TLDRAW_LICENSE_KEY=<your-key> npm run build   # client → dist/ (key inlined here)
+npm start                                          # tsx server/server.ts, reads .env.server
 ```
 
-Set the production secrets with `npx wrangler secret put MISTRAL_API_KEY` (and `OPENROUTER_API_KEY`,
-etc.) rather than committing `.dev.vars`.
+The build inlines `VITE_TLDRAW_LICENSE_KEY`, so it must be present at build time (export it or put
+it in `.env`). The runtime provider secrets are read from `.env.server` at start. Example systemd
+unit + Caddy reverse proxy:
+
+```ini
+# /etc/systemd/system/tldraw-agent.service
+[Service]
+WorkingDirectory=/root/tldraw-agent-draw-demo
+EnvironmentFile=/root/tldraw-agent-draw-demo/.env.server
+ExecStart=/root/.nvm/versions/node/v20.20.2/bin/node node_modules/.bin/tsx server/server.ts
+Restart=on-failure
+```
+
+```caddy
+tldraw-agent.example.com {
+    reverse_proxy localhost:3003
+}
+```
+
+Caddy proxies SSE fine out of the box. (If you ever see buffered streaming, add `flush_interval -1`
+to the `reverse_proxy` block.)
 
 **tldraw license for production.** The tldraw SDK is free in development but requires a license key
 for any public deployment (see Credits and license below). Get one from

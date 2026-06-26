@@ -85,7 +85,11 @@ export const AGENT_MODEL_DEFINITIONS = {
 	},
 } as const
 
-export const DEFAULT_MODEL_NAME: AgentModelName = 'google/gemini-2.5-flash'
+// Default to Anthropic on the no-cloudflare branch: the self-hosted deployment is
+// configured with an Anthropic API key, so Sonnet is the model that works out of
+// the box. The picker still offers the other models, but each needs its provider's
+// key set in the server environment.
+export const DEFAULT_MODEL_NAME: AgentModelName = 'claude-sonnet-4-5'
 
 /**
  * Check if a string is a valid AgentModelName.
