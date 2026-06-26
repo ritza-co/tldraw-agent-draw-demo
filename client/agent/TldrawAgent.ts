@@ -10,6 +10,7 @@ import { ContextItem } from '../../shared/types/ContextItem'
 import { PromptPart } from '../../shared/types/PromptPart'
 import { Streaming } from '../../shared/types/Streaming'
 import { TodoItem } from '../../shared/types/TodoItem'
+import { apiKeyHeaders } from '../ui/apiKeys'
 import { AgentHelpers } from '../AgentHelpers'
 import { getModeNode } from '../modes/AgentModeChart'
 import { AgentModeType } from '../modes/AgentModeDefinitions'
@@ -696,6 +697,9 @@ export class TldrawAgent {
 			body: JSON.stringify(prompt),
 			headers: {
 				'Content-Type': 'application/json',
+				// User-supplied provider keys (stored only in their browser). The
+				// server uses them transiently and never stores them.
+				...apiKeyHeaders(),
 			},
 			signal,
 		})

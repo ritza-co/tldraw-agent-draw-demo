@@ -10,7 +10,12 @@
  *   POST /transcribe  -> forward an audio blob to Mistral Voxtral, return text
  *
  * Everything else is the static client bundle served from ../dist with an SPA
- * fallback. Provider API keys come from process.env (see .env.server.example).
+ * fallback.
+ *
+ * Provider API keys are bring-your-own: each request carries the user's keys as
+ * `x-<provider>-api-key` headers (stored only in their browser). The server uses
+ * them for that one request and never stores or logs them. A server-side key in
+ * .env.server is optional and only acts as a fallback when no header is sent.
  */
 import cors from '@fastify/cors'
 import multipart from '@fastify/multipart'
@@ -18,6 +23,7 @@ import fastifyStatic from '@fastify/static'
 import fastify from 'fastify'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import { FastifyRequest } from 'fastify'
 import { AgentService } from '../worker/do/AgentService'
 import { Environment } from '../worker/environment'
 import { AgentPrompt } from '../shared/types/AgentPrompt'
@@ -26,7 +32,9 @@ const PORT = Number(process.env.PORT) || 5858
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const DIST = path.join(__dirname, '../dist')
 
-const env: Environment = {
+// Server-side fallback keys, if any are configured in .env.server. On the public
+// demo these are intentionally blank — visitors bring their own key (see below).
+const serverEnv: Environment = {
 	OPENAI_API_KEY: process.env.OPENAI_API_KEY ?? '',
 	ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY ?? '',
 	GOOGLE_API_KEY: process.env.GOOGLE_API_KEY ?? '',
@@ -34,11 +42,37 @@ const env: Environment = {
 	OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY ?? '',
 }
 
-const service = new AgentService(env)
+// Build the key set for one request: the user's own keys (sent as headers from
+// their browser, where they are the only copy) take priority over any server
+// fallback. These are used transiently for this request only and never stored
+// or logged.
+function envFromRequest(request: FastifyRequest): Environment {
+	const header = (name: string) => {
+		const value = request.headers[name]
+		return (Array.isArray(value) ? value[0] : value) ?? ''
+	}
+	return {
+		ANTHROPIC_API_KEY: header('x-anthropic-api-key') || serverEnv.ANTHROPIC_API_KEY,
+		OPENAI_API_KEY: header('x-openai-api-key') || serverEnv.OPENAI_API_KEY,
+		GOOGLE_API_KEY: header('x-google-api-key') || serverEnv.GOOGLE_API_KEY,
+		OPENROUTER_API_KEY: header('x-openrouter-api-key') || serverEnv.OPENROUTER_API_KEY,
+		MISTRAL_API_KEY: header('x-mistral-api-key') || serverEnv.MISTRAL_API_KEY,
+	}
+}
 
 // bodyLimit leaves room for the base64 image context the client sends with prompts
 const app = fastify({ bodyLimit: 16 * 1024 * 1024 })
-await app.register(cors, { origin: '*' })
+await app.register(cors, {
+	origin: '*',
+	allowedHeaders: [
+		'Content-Type',
+		'x-anthropic-api-key',
+		'x-openai-api-key',
+		'x-google-api-key',
+		'x-openrouter-api-key',
+		'x-mistral-api-key',
+	],
+})
 await app.register(multipart, { limits: { fileSize: 25 * 1024 * 1024 } })
 
 // Stream agent actions as SSE. We write to reply.raw directly because the
@@ -53,6 +87,8 @@ app.post('/stream', async (request, reply) => {
 		Connection: 'keep-alive',
 		'X-Accel-Buffering': 'no',
 	})
+
+	const service = new AgentService(envFromRequest(request))
 
 	try {
 		for await (const change of service.stream(prompt)) {
@@ -74,14 +110,24 @@ app.post('/transcribe', async (request, reply) => {
 		return reply.code(400).send({ error: 'No file provided' })
 	}
 
+	const mistralKey = envFromRequest(request).MISTRAL_API_KEY
+	if (!mistralKey) {
+		return reply.code(400).send({ error: 'No Mistral API key. Add one in the API keys panel.' })
+	}
+
 	const buffer = await file.toBuffer()
 	const outForm = new FormData()
-	outForm.append('file', new Blob([buffer], { type: file.mimetype }), file.filename || 'audio.webm')
+	// Wrap in Uint8Array so the type satisfies BlobPart under the DOM lib.
+	outForm.append(
+		'file',
+		new Blob([new Uint8Array(buffer)], { type: file.mimetype }),
+		file.filename || 'audio.webm'
+	)
 	outForm.append('model', 'voxtral-mini-transcribe-2507')
 
 	const mistralResponse = await fetch('https://api.mistral.ai/v1/audio/transcriptions', {
 		method: 'POST',
-		headers: { Authorization: `Bearer ${env.MISTRAL_API_KEY}` },
+		headers: { Authorization: `Bearer ${mistralKey}` },
 		body: outForm,
 	})
 

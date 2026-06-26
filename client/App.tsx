@@ -12,6 +12,7 @@ import {
 	TldrawAgentAppContextProvider,
 	TldrawAgentAppProvider,
 } from './agent/TldrawAgentAppProvider'
+import { ApiKeysPanel } from './components/ApiKeysPanel'
 import { ChatPanel } from './components/ChatPanel'
 import { ChatPanelFallback } from './components/ChatPanelFallback'
 import { CustomHelperButtons } from './components/CustomHelperButtons'
@@ -126,6 +127,7 @@ function App() {
 	return (
 		<TldrawUiToastsProvider>
 			<div className="tldraw-agent-container">
+				<ApiKeysPanel />
 				<div className="tldraw-canvas">
 					<Tldraw
 						// tldraw SDK license key. Required for any public/production deploy

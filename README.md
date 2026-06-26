@@ -65,22 +65,28 @@ Key pieces (everything new lives alongside the unchanged starter-kit code):
 > Worker, so it can be self-hosted on any VPS. See [Deployment](#deployment).
 
 The backend needs two things: an LLM provider for the agent and a speech-to-text provider for
-transcription. Server-side secrets live in `.env.server` (read by the Node process); the public
-tldraw license key lives in `.env` (inlined into the client bundle at build time).
+transcription. The public tldraw license key lives in `.env` (inlined into the client bundle at
+build time).
 
 ```bash
-cp .env.server.example .env.server   # secret provider keys
 cp .env.example .env                  # public VITE_TLDRAW_LICENSE_KEY
+cp .env.server.example .env.server    # optional server-side fallback keys
 ```
 
-Required out of the box:
+### Bring your own key
 
-- `ANTHROPIC_API_KEY` — the default agent model is `claude-sonnet-4-5`
+Provider keys are bring-your-own. The UI has an "API keys" panel (top-right) where a visitor
+pastes their own keys; they are stored only in that browser's `localStorage` and sent as
+`x-<provider>-api-key` request headers. The server uses them for that one request and never stores
+or logs them — so a public deployment has no shared key for visitors to run up costs against.
+
+- `anthropic` — the default agent model is `claude-sonnet-4-5`
   ([Anthropic](https://console.anthropic.com/)).
-- `MISTRAL_API_KEY` — speech-to-text ([Mistral](https://console.mistral.ai/)).
+- `mistral` — speech-to-text ([Mistral](https://console.mistral.ai/)).
+- `openai`, `google`, `openrouter` — only if you switch the model picker to that provider.
 
-Optional (only if you switch the model picker to a native provider):
-`GOOGLE_API_KEY`, `OPENAI_API_KEY`, `OPENROUTER_API_KEY`.
+Setting any of these in `.env.server` makes it a server-side fallback used when a request carries
+no header. For a shared-cost-free public demo, leave `.env.server` blank.
 
 ## Local development
 
