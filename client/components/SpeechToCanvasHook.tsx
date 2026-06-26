@@ -9,6 +9,7 @@ declare global {
 		speechToCanvas?: {
 			getShapeCount: () => number
 			runAreaCaptureDemo: (bounds: { x: number; y: number; w: number; h: number }) => Promise<{ transcript: string; error?: string }>
+			runAreaDraw: (text: string, bounds: { x: number; y: number; w: number; h: number }) => Promise<{ drawn: number; error?: string }>
 			getAllShapesBounds: () => { x: number; y: number; w: number; h: number } | null
 		}
 	}
@@ -121,9 +122,21 @@ export function SpeechToCanvasHook() {
 			}
 		}
 
+		// Text-driven variant of the area capture (skips the mic + transcription),
+		// so the exact draw-inside-bounds path can be exercised from automation.
+		const runAreaDraw = async (text: string, bounds: { x: number; y: number; w: number; h: number }) => {
+			try {
+				const drawn = await requestDrawInArea(agent, text, bounds)
+				return { drawn }
+			} catch (err) {
+				return { drawn: 0, error: err instanceof Error ? err.message : String(err) }
+			}
+		}
+
 		window.speechToCanvas = {
 			getShapeCount: () => agent.editor.getCurrentPageShapes().length,
 			runAreaCaptureDemo,
+			runAreaDraw,
 			getAllShapesBounds,
 		}
 

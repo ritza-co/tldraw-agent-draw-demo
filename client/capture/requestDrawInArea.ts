@@ -22,14 +22,6 @@ function buildAreaMessage(text: string): string {
 	)
 }
 
-/** Switch the agent to `mode` only if it isn't already there. `setMode` throws
- * if asked to re-enter the current mode (AgentModeManager.setMode). */
-function ensureMode(agent: TldrawAgent, mode: 'working' | 'idling'): void {
-	if (agent.mode.getCurrentModeType() !== mode) {
-		agent.mode.setMode(mode)
-	}
-}
-
 /**
  * Ask the agent to draw `text` inside `bounds`, driving it to a complete result.
  *
@@ -56,12 +48,10 @@ export async function requestDrawInArea(
 	bounds: BoxModel
 ): Promise<number> {
 	const area = { type: 'area' as const, bounds, source: 'user' as const }
-	ensureMode(agent, 'working')
 	const before = agent.editor.getCurrentPageShapeIds().size
-	try {
-		await agent.prompt({ message: buildAreaMessage(text), contextItems: [area] })
-		return agent.editor.getCurrentPageShapeIds().size - before
-	} finally {
-		ensureMode(agent, 'idling')
-	}
+	// Let agent.prompt drive its own mode (idling -> working -> idling), exactly
+	// like the chat path. Forcing 'working' up front left the agent in a state
+	// where the request's create actions never applied to the canvas.
+	await agent.prompt({ message: buildAreaMessage(text), contextItems: [area] })
+	return agent.editor.getCurrentPageShapeIds().size - before
 }

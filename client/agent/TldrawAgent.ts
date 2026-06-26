@@ -28,6 +28,13 @@ import { AgentTodoManager } from './managers/AgentTodoManager'
 import { AgentUserActionTracker } from './managers/AgentUserActionTracker'
 
 /**
+ * Hard cap on agentic turns per prompt. The agent schedules a follow-up turn
+ * whenever it emits a `review` action; some models review on every turn and
+ * never stop on their own, so without a cap a single request can loop forever.
+ */
+const MAX_PROMPT_TURNS = 6
+
+/**
  * The persisted state of an agent.
  * Used for saving and loading agent state.
  */
@@ -301,7 +308,10 @@ export class TldrawAgent {
 	 *
 	 * @returns A promise for when the agent has finished its work.
 	 */
-	async prompt(input: AgentInput, { nested = false }: { nested?: boolean } = {}) {
+	async prompt(
+		input: AgentInput,
+		{ nested = false, turn = 0 }: { nested?: boolean; turn?: number } = {}
+	) {
 		if (this.requests.isGenerating() && !nested) {
 			throw new Error('Agent is already prompting. Please wait for the current prompt to finish.')
 		}
@@ -355,6 +365,20 @@ export class TldrawAgent {
 			return
 		}
 
+		// Cap the number of agentic turns. Some models (e.g. Mistral) emit a
+		// `review` action on every turn, which schedules another turn, so the loop
+		// would otherwise never terminate. After the cap we drop the pending
+		// scheduled request and return the agent to an idle state.
+		if (turn + 1 >= MAX_PROMPT_TURNS) {
+			this.requests.clearScheduledRequest()
+			if (this.mode.getCurrentModeType() !== 'idling') {
+				this.mode.setMode('idling')
+			}
+			this.requests.setIsPrompting(false)
+			this.requests.setCancelFn(null)
+			return
+		}
+
 		// If there *is* a scheduled request...
 		// Add the scheduled request to chat history
 		const resolvedData = await Promise.all(scheduledRequest.data)
@@ -365,7 +389,7 @@ export class TldrawAgent {
 
 		// Handle the scheduled request and clear it
 		this.requests.clearScheduledRequest()
-		await this.prompt(scheduledRequest, { nested: true })
+		await this.prompt(scheduledRequest, { nested: true, turn: turn + 1 })
 	}
 
 	/**

@@ -1,7 +1,6 @@
 import { useCallback, useMemo, useState } from 'react'
 import {
 	DefaultSizeStyle,
-	ErrorBoundary,
 	TLComponents,
 	Tldraw,
 	TldrawUiToastsProvider,
@@ -13,8 +12,6 @@ import {
 	TldrawAgentAppProvider,
 } from './agent/TldrawAgentAppProvider'
 import { ApiKeysPanel } from './components/ApiKeysPanel'
-import { ChatPanel } from './components/ChatPanel'
-import { ChatPanelFallback } from './components/ChatPanelFallback'
 import { CustomHelperButtons } from './components/CustomHelperButtons'
 import { CustomToolbar } from './components/CustomToolbar'
 import { AreaCaptureOverlay } from './components/AreaCaptureOverlay'
@@ -144,13 +141,6 @@ function App() {
 						<TldrawAgentAppProvider onMount={setApp} onUnmount={handleUnmount} />
 					</Tldraw>
 				</div>
-				<ErrorBoundary fallback={ChatPanelFallback}>
-					{app && (
-						<TldrawAgentAppContextProvider app={app}>
-							<ChatPanel />
-						</TldrawAgentAppContextProvider>
-					)}
-				</ErrorBoundary>
 			</div>
 		</TldrawUiToastsProvider>
 	)
