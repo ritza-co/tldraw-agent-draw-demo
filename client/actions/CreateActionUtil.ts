@@ -66,6 +66,17 @@ export const CreateActionUtil = registerActionUtil(
 			// If there's no shape yet, return early
 			if (!shape || !shape._type) return
 
+			// A `create` action carries no stroke points, so a freehand `draw` shape
+			// created this way has empty segments. tldraw then builds a Polyline2d
+			// with zero points and throws ("points must be an array of at least 2
+			// points") inside the reactive geometry cache, which blanks the whole
+			// canvas. Freehand strokes must come through the `pen` action instead, so
+			// drop draw-via-create rather than crash everything.
+			if (shape._type === 'draw') {
+				console.warn('[create] ignoring draw shape created without points; use a pen action')
+				return
+			}
+
 			// Translate the shape back to the chat's position
 			const shapePartial = helpers.removeOffsetFromShapePartial(shape)
 
