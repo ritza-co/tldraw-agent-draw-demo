@@ -1,5 +1,5 @@
 export type AgentModelName = keyof typeof AGENT_MODEL_DEFINITIONS
-export type AgentModelProvider = 'openai' | 'anthropic' | 'google' | 'openrouter'
+export type AgentModelProvider = 'openai' | 'anthropic' | 'google' | 'openrouter' | 'mistral'
 
 export interface AgentModelDefinition {
 	name: AgentModelName
@@ -11,6 +11,20 @@ export interface AgentModelDefinition {
 }
 
 export const AGENT_MODEL_DEFINITIONS = {
+	// Mistral models. Mistral also powers voice transcription (Voxtral), so a
+	// single Mistral key can drive both the agent and the mic pipeline.
+	'mistral-large-latest': {
+		name: 'mistral-large-latest',
+		id: 'mistral-large-latest',
+		provider: 'mistral',
+	},
+
+	'mistral-small-latest': {
+		name: 'mistral-small-latest',
+		id: 'mistral-small-latest',
+		provider: 'mistral',
+	},
+
 	// Anthropic models
 	// sonnet 4.5 is recommended
 	'claude-sonnet-4-5': {
@@ -85,11 +99,10 @@ export const AGENT_MODEL_DEFINITIONS = {
 	},
 } as const
 
-// Default to Anthropic on the no-cloudflare branch: the self-hosted deployment is
-// configured with an Anthropic API key, so Sonnet is the model that works out of
-// the box. The picker still offers the other models, but each needs its provider's
-// key set in the server environment.
-export const DEFAULT_MODEL_NAME: AgentModelName = 'claude-sonnet-4-5'
+// Default to Mistral on the no-cloudflare branch: voice transcription already uses
+// Mistral (Voxtral), so a single Mistral key powers both the agent and the mic.
+// The picker still offers the other models, but each needs its provider's key.
+export const DEFAULT_MODEL_NAME: AgentModelName = 'mistral-large-latest'
 
 /**
  * Check if a string is a valid AgentModelName.

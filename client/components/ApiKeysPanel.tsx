@@ -67,7 +67,8 @@ export function ApiKeysPanel() {
 				>
 					<p style={{ margin: '0 0 10px', color: '#374151' }}>
 						Keys are stored only in this browser and sent with each request. They are never
-						saved on the server. Anthropic powers the agent; Mistral powers voice.
+						saved on the server. A single Mistral key powers both the drawing agent and
+						voice transcription.
 					</p>
 
 					{API_KEY_PROVIDERS.map((provider) => (

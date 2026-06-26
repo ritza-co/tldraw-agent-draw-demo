@@ -17,6 +17,7 @@
 	"dependencies": {
 		"@ai-sdk/anthropic": "^2.0.2",
 		"@ai-sdk/google": "^2.0.14",
+		"@ai-sdk/mistral": "^2.0.35",
 		"@ai-sdk/openai": "^2.0.24",
 		"@fastify/cors": "^10.0.1",
 		"@fastify/multipart": "^9.0.1",

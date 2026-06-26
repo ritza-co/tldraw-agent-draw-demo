@@ -5,12 +5,12 @@
  * never stores or logs them — there is no shared server-side key, so visitors
  * cannot run up costs against anyone but themselves.
  */
-export const API_KEY_PROVIDERS = ['anthropic', 'mistral', 'openai', 'google', 'openrouter'] as const
+export const API_KEY_PROVIDERS = ['mistral', 'anthropic', 'openai', 'google', 'openrouter'] as const
 export type ApiKeyProvider = (typeof API_KEY_PROVIDERS)[number]
 
 export const API_KEY_LABELS: Record<ApiKeyProvider, string> = {
-	anthropic: 'Anthropic (default agent model)',
-	mistral: 'Mistral (voice transcription)',
+	mistral: 'Mistral (default — powers both drawing and voice)',
+	anthropic: 'Anthropic',
 	openai: 'OpenAI',
 	google: 'Google',
 	openrouter: 'OpenRouter',
