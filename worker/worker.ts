@@ -5,7 +5,10 @@ import { Environment } from './environment'
 import { stream } from './routes/stream'
 import { transcribe } from './routes/transcribe'
 
-const { preflight, corsify } = cors({ origin: '*' })
+const { preflight, corsify } = cors({
+	origin: '*',
+	allowHeaders: 'Content-Type, x-mistral-api-key, x-anthropic-api-key, x-openai-api-key, x-google-api-key, x-openrouter-api-key',
+})
 
 const router = AutoRouter<IRequest, [env: Environment, ctx: ExecutionContext]>({
 	before: [preflight],

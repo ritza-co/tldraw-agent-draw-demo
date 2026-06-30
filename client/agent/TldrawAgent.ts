@@ -1,6 +1,7 @@
 import { Editor, RecordsDiff, reverseRecordsDiff, structuredClone, TLRecord } from 'tldraw'
 import { convertTldrawShapeToFocusedShape } from '../../shared/format/convertTldrawShapeToFocusedShape'
 import { AgentModelName } from '../../shared/models'
+import { apiKeyHeaders } from '../ui/apiKeys'
 import { AgentAction } from '../../shared/types/AgentAction'
 import { AgentInput } from '../../shared/types/AgentInput'
 import { AgentPrompt, BaseAgentPrompt } from '../../shared/types/AgentPrompt'
@@ -700,6 +701,7 @@ export class TldrawAgent {
 			body: JSON.stringify(prompt),
 			headers: {
 				'Content-Type': 'application/json',
+				...apiKeyHeaders(),
 			},
 			signal,
 		})

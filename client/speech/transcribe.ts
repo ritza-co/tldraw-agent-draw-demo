@@ -1,3 +1,5 @@
+import { apiKeyHeaders } from '../ui/apiKeys'
+
 /**
  * Transcribe an audio blob via the `/transcribe` worker route (Mistral).
  * Returns the trimmed transcript text. Throws on HTTP / network error.
@@ -7,7 +9,7 @@ export async function transcribe(blob: Blob): Promise<string> {
 	const fd = new FormData()
 	fd.append('file', blob, 'audio.webm')
 
-	const response = await fetch('/transcribe', { method: 'POST', body: fd })
+	const response = await fetch('/transcribe', { method: 'POST', body: fd, headers: apiKeyHeaders() })
 
 	if (!response.ok) {
 		const errorText = await response.text()

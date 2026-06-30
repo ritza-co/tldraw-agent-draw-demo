@@ -12,6 +12,9 @@ export async function transcribe(request: IRequest, env: Environment) {
 		})
 	}
 
+	// Prefer a user-supplied key from the request header over the env var
+	const mistralKey = request.headers.get('x-mistral-api-key') || env.MISTRAL_API_KEY
+
 	const outForm = new FormData()
 	outForm.append('file', file)
 	outForm.append('model', 'voxtral-mini-transcribe-2507')
@@ -19,7 +22,7 @@ export async function transcribe(request: IRequest, env: Environment) {
 	const mistralResponse = await fetch('https://api.mistral.ai/v1/audio/transcriptions', {
 		method: 'POST',
 		headers: {
-			Authorization: `Bearer ${env.MISTRAL_API_KEY}`,
+			Authorization: `Bearer ${mistralKey}`,
 		},
 		body: outForm,
 	})

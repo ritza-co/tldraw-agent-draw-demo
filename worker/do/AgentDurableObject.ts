@@ -37,13 +37,28 @@ export class AgentDurableObject extends DurableObject<Environment> {
 		const { readable, writable } = new TransformStream()
 		const writer = writable.getWriter()
 
+		// If the client sent user-supplied API keys as request headers, build a
+		// per-request service that overrides the corresponding env vars.
+		const envOverride: Environment = { ...this.env }
+		const mistralKey = request.headers.get('x-mistral-api-key')
+		const anthropicKey = request.headers.get('x-anthropic-api-key')
+		const openaiKey = request.headers.get('x-openai-api-key')
+		const googleKey = request.headers.get('x-google-api-key')
+		const openrouterKey = request.headers.get('x-openrouter-api-key')
+		if (mistralKey) envOverride.MISTRAL_API_KEY = mistralKey
+		if (anthropicKey) envOverride.ANTHROPIC_API_KEY = anthropicKey
+		if (openaiKey) envOverride.OPENAI_API_KEY = openaiKey
+		if (googleKey) envOverride.GOOGLE_API_KEY = googleKey
+		if (openrouterKey) envOverride.OPENROUTER_API_KEY = openrouterKey
+		const service = new AgentService(envOverride)
+
 		const response: { changes: Streaming<AgentAction>[] } = { changes: [] }
 
 		;(async () => {
 			try {
 				const prompt = (await request.json()) as AgentPrompt
 
-				for await (const change of this.service.stream(prompt)) {
+				for await (const change of service.stream(prompt)) {
 					response.changes.push(change)
 					const data = `data: ${JSON.stringify(change)}\n\n`
 					await writer.write(encoder.encode(data))

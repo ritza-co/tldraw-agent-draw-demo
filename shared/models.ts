@@ -1,5 +1,5 @@
 export type AgentModelName = keyof typeof AGENT_MODEL_DEFINITIONS
-export type AgentModelProvider = 'openai' | 'anthropic' | 'google' | 'openrouter'
+export type AgentModelProvider = 'openai' | 'anthropic' | 'google' | 'openrouter' | 'mistral'
 
 export interface AgentModelDefinition {
 	name: AgentModelName
@@ -82,6 +82,19 @@ export const AGENT_MODEL_DEFINITIONS = {
 		name: 'openai/gpt-5-mini',
 		id: 'openai/gpt-5-mini',
 		provider: 'openrouter',
+	},
+
+	// Mistral models — a single Mistral key covers both drawing and voice transcription
+	'mistral-large-latest': {
+		name: 'mistral-large-latest',
+		id: 'mistral-large-latest',
+		provider: 'mistral',
+	},
+
+	'mistral-small-latest': {
+		name: 'mistral-small-latest',
+		id: 'mistral-small-latest',
+		provider: 'mistral',
 	},
 } as const
 

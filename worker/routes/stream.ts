@@ -1,13 +1,30 @@
 import { IRequest } from 'itty-router'
 import { Environment } from '../environment'
 
+const API_KEY_HEADER_NAMES = [
+	'x-mistral-api-key',
+	'x-anthropic-api-key',
+	'x-openai-api-key',
+	'x-google-api-key',
+	'x-openrouter-api-key',
+]
+
 export async function stream(request: IRequest, env: Environment) {
 	// eventually... use some kind of per-user id, so that each user has their own worker
 	const id = env.AGENT_DURABLE_OBJECT.idFromName('anonymous')
 	const DO = env.AGENT_DURABLE_OBJECT.get(id)
+
+	// Forward user-supplied API key headers so the DO can use them instead of env vars
+	const forwardHeaders: Record<string, string> = { 'Content-Type': 'application/json' }
+	for (const name of API_KEY_HEADER_NAMES) {
+		const value = request.headers.get(name)
+		if (value) forwardHeaders[name] = value
+	}
+
 	const response = await DO.fetch(request.url, {
 		method: 'POST',
 		body: request.body as any,
+		headers: forwardHeaders,
 	})
 
 	return new Response(response.body as BodyInit, {
@@ -19,7 +36,7 @@ export async function stream(request: IRequest, env: Environment) {
 			'Transfer-Encoding': 'chunked',
 			'Access-Control-Allow-Origin': '*',
 			'Access-Control-Allow-Methods': 'POST, OPTIONS',
-			'Access-Control-Allow-Headers': 'Content-Type',
+			'Access-Control-Allow-Headers': 'Content-Type, x-mistral-api-key, x-anthropic-api-key, x-openai-api-key, x-google-api-key, x-openrouter-api-key',
 		},
 	})
 }

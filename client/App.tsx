@@ -1,19 +1,18 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
 	DefaultSizeStyle,
-	ErrorBoundary,
 	TLComponents,
 	Tldraw,
 	TldrawUiToastsProvider,
 	TLUiOverrides,
+	useEditor,
 } from 'tldraw'
 import { TldrawAgentApp } from './agent/TldrawAgentApp'
 import {
 	TldrawAgentAppContextProvider,
 	TldrawAgentAppProvider,
 } from './agent/TldrawAgentAppProvider'
-import { ChatPanel } from './components/ChatPanel'
-import { ChatPanelFallback } from './components/ChatPanelFallback'
+import { ApiKeysPanel } from './components/ApiKeysPanel'
 import { QuotaModal } from './components/QuotaModal'
 import { CustomHelperButtons } from './components/CustomHelperButtons'
 import { CustomToolbar } from './components/CustomToolbar'
@@ -23,6 +22,14 @@ import { AllContextHighlights } from './components/highlights/ContextHighlights'
 import { AreaCaptureTool } from './tools/AreaCaptureTool'
 import { TargetAreaTool } from './tools/TargetAreaTool'
 import { TargetShapeTool } from './tools/TargetShapeTool'
+
+function ToolPreselector() {
+	const editor = useEditor()
+	useEffect(() => {
+		editor.setCurrentTool('area-capture')
+	}, [editor])
+	return null
+}
 
 // Lucide "bot" icon. Use JSX instead of a custom asset URL because tldraw
 // string icons are applied as CSS masks, which can turn data-URL SVGs into a
@@ -97,8 +104,6 @@ function App() {
 		setApp(null)
 	}, [])
 
-	// Custom components to visualize what the agent is doing
-	// These use TldrawAgentAppContextProvider to access the app/agent
 	const components: TLComponents = useMemo(() => {
 		return {
 			HelperButtons: () =>
@@ -135,16 +140,11 @@ function App() {
 						components={components}
 					>
 						<TldrawAgentAppProvider onMount={setApp} onUnmount={handleUnmount} />
+						<ToolPreselector />
 					</Tldraw>
 				</div>
-				<ErrorBoundary fallback={ChatPanelFallback}>
-					{app && (
-						<TldrawAgentAppContextProvider app={app}>
-							<ChatPanel />
-						</TldrawAgentAppContextProvider>
-					)}
-				</ErrorBoundary>
 			</div>
+			<ApiKeysPanel />
 			<QuotaModal />
 		</TldrawUiToastsProvider>
 	)

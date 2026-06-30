@@ -1,5 +1,6 @@
 import { AnthropicProvider, createAnthropic } from '@ai-sdk/anthropic'
 import { createGoogleGenerativeAI, GoogleGenerativeAIProvider } from '@ai-sdk/google'
+import { createMistral, MistralProvider } from '@ai-sdk/mistral'
 import { createOpenAI, OpenAIProvider } from '@ai-sdk/openai'
 import { LanguageModel, ModelMessage, streamText } from 'ai'
 import { AgentModelName, getAgentModelDefinition, isValidModelName } from '../../shared/models'
@@ -17,6 +18,7 @@ export class AgentService {
 	openai: OpenAIProvider
 	anthropic: AnthropicProvider
 	google: GoogleGenerativeAIProvider
+	mistral: MistralProvider
 	// OpenRouter exposes an OpenAI-compatible API, so we reuse the OpenAI
 	// provider pointed at OpenRouter's base URL. Models are reached via .chat()
 	// (chat-completions), which is what OpenRouter implements.
@@ -26,6 +28,7 @@ export class AgentService {
 		this.openai = createOpenAI({ apiKey: env.OPENAI_API_KEY })
 		this.anthropic = createAnthropic({ apiKey: env.ANTHROPIC_API_KEY })
 		this.google = createGoogleGenerativeAI({ apiKey: env.GOOGLE_API_KEY })
+		this.mistral = createMistral({ apiKey: env.MISTRAL_API_KEY })
 		this.openrouter = createOpenAI({
 			apiKey: env.OPENROUTER_API_KEY,
 			baseURL: 'https://openrouter.ai/api/v1',

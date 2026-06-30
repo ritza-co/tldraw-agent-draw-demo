@@ -37,8 +37,12 @@ export function CustomToolbar() {
 	const tools = useTools()
 	const isAreaCaptureSelected = useIsToolSelected(tools['area-capture'])
 
+	// maxItems=1 keeps Agent Draw as the only visible item; all others collapse
+	// into the overflow/more menu that DefaultToolbar renders automatically.
 	return (
-		<DefaultToolbar>
+		<DefaultToolbar maxItems={1}>
+			<TldrawUiMenuItem {...tools['area-capture']} isSelected={isAreaCaptureSelected} />
+
 			<SelectToolbarItem />
 			<HandToolbarItem />
 			<DrawToolbarItem />
@@ -47,28 +51,22 @@ export function CustomToolbar() {
 			<TextToolbarItem />
 			<NoteToolbarItem />
 			<AssetToolbarItem />
-			<TldrawUiMenuItem {...tools['area-capture']} isSelected={isAreaCaptureSelected} />
-
 			<RectangleToolbarItem />
 			<EllipseToolbarItem />
 			<TriangleToolbarItem />
 			<DiamondToolbarItem />
-
 			<HexagonToolbarItem />
 			<OvalToolbarItem />
 			<RhombusToolbarItem />
 			<StarToolbarItem />
-
 			<CloudToolbarItem />
 			<HeartToolbarItem />
 			<XBoxToolbarItem />
 			<CheckBoxToolbarItem />
-
 			<ArrowLeftToolbarItem />
 			<ArrowUpToolbarItem />
 			<ArrowDownToolbarItem />
 			<ArrowRightToolbarItem />
-
 			<LineToolbarItem />
 			<HighlightToolbarItem />
 			<LaserToolbarItem />
