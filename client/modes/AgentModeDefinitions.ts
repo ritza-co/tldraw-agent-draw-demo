@@ -16,10 +16,12 @@ import { MoveActionUtil } from '../actions/MoveActionUtil'
 import { PenActionUtil } from '../actions/PenActionUtil'
 import { PlaceActionUtil } from '../actions/PlaceActionUtil'
 import { ResizeActionUtil } from '../actions/ResizeActionUtil'
-import { ReviewActionUtil } from '../actions/ReviewActionUtil'
+// Registered for completeness but not offered in any mode (see actions list below).
+import '../actions/ReviewActionUtil'
 import { RotateActionUtil } from '../actions/RotateActionUtil'
 import { SendToBackActionUtil } from '../actions/SendToBackActionUtil'
-import { SetMyViewActionUtil } from '../actions/SetMyViewActionUtil'
+// Registered for completeness but not offered in any mode (see actions list below).
+import '../actions/SetMyViewActionUtil'
 import { StackActionUtil } from '../actions/StackActionUtil'
 import { ThinkActionUtil } from '../actions/ThinkActionUtil'
 import { UnknownActionUtil } from '../actions/UnknownActionUtil'
@@ -135,11 +137,13 @@ export const AGENT_MODE_DEFINITIONS = [
 			MessageActionUtil.type,
 
 			// Planning
+			// (Review + camera moves removed for the area-capture demo: each forces
+			// an extra LLM round-trip — review schedules a continuation, setMyView
+			// interrupts and re-requests — which slowed drawing without helping the
+			// fixed-region draw. See ReviewActionUtil / SetMyViewActionUtil.)
 			ThinkActionUtil.type,
-			ReviewActionUtil.type,
 			AddDetailActionUtil.type,
 			UpsertTodoListItemActionUtil.type,
-			SetMyViewActionUtil.type,
 
 			// Individual shapes
 			CreateActionUtil.type,

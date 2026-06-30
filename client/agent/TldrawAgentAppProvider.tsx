@@ -2,6 +2,7 @@ import { createContext, memo, ReactNode, useCallback, useContext, useEffect, use
 import { useEditor, useToasts, useValue } from 'tldraw'
 import { TldrawAgent } from './TldrawAgent'
 import { TldrawAgentApp } from './TldrawAgentApp'
+import { reportPossibleQuotaError } from '../ui/quotaError'
 
 const TldrawAgentAppContext = createContext<TldrawAgentApp | null>(null)
 
@@ -63,13 +64,16 @@ export const TldrawAgentAppProvider = memo(function TldrawAgentAppProvider({
 	// Error handler for agent errors
 	const handleError = useCallback(
 		(e: any) => {
+			console.error(e)
+			// Quota/billing failures (most often OpenRouter, from the draw stream) get
+			// the friendly "demo is out of budget" modal instead of a raw error toast.
+			if (reportPossibleQuotaError(e, 'OpenRouter')) return
 			const message = typeof e === 'string' ? e : e instanceof Error && e.message
 			toasts.addToast({
 				title: 'Error',
 				description: message || 'An error occurred',
 				severity: 'error',
 			})
-			console.error(e)
 		},
 		[toasts]
 	)

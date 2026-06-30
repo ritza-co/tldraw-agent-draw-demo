@@ -58,8 +58,8 @@ export const AGENT_MODEL_DEFINITIONS = {
 	// OpenRouter models. These route through OpenRouter's OpenAI-compatible API
 	// (billed against OpenRouter credits), so the pipeline no longer hammers the
 	// personal Google quota. Names match OpenRouter's model ids. flash-lite is the
-	// lowest-latency option in the family; gemini-2.5-flash is the default (below)
-	// because it reliably finishes a complete in-bounds drawing in one prompt.
+	// lowest-latency option in the family; anthropic/claude-haiku-4.5 is the
+	// default (below).
 	'google/gemini-2.5-flash-lite': {
 		name: 'google/gemini-2.5-flash-lite',
 		id: 'google/gemini-2.5-flash-lite',
@@ -85,7 +85,7 @@ export const AGENT_MODEL_DEFINITIONS = {
 	},
 } as const
 
-export const DEFAULT_MODEL_NAME: AgentModelName = 'google/gemini-2.5-flash'
+export const DEFAULT_MODEL_NAME: AgentModelName = 'anthropic/claude-haiku-4.5'
 
 /**
  * Check if a string is a valid AgentModelName.

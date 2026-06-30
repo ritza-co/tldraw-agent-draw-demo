@@ -77,15 +77,11 @@ const _AGENT_MODE_CHART: Record<AgentModeDefinition['type'], AgentModeNode> = {
 				return
 			}
 
-			// Check if there are unsurfaced lints on created shapes
-			if (agent.lints.hasUnsurfacedLints(agent.lints.getCreatedShapes())) {
-				agent.schedule({
-					agentMessages: [
-						'The automated linter has detected potential visual problems in the canvas. Decide if they need to be addressed.',
-					],
-				})
-				return
-			}
+			// Note: the lint-review continuation was removed for the area-capture demo.
+			// It scheduled an extra LLM round-trip to second-guess overlaps after every
+			// draw, which was the single biggest source of post-draw latency and rarely
+			// improved the fixed-region result. The draw now ends as soon as the work is
+			// done.
 
 			// All work complete - return to idling
 			agent.mode.setMode('idling')

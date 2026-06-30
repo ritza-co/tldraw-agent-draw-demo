@@ -14,6 +14,7 @@ import {
 } from './agent/TldrawAgentAppProvider'
 import { ChatPanel } from './components/ChatPanel'
 import { ChatPanelFallback } from './components/ChatPanelFallback'
+import { QuotaModal } from './components/QuotaModal'
 import { CustomHelperButtons } from './components/CustomHelperButtons'
 import { CustomToolbar } from './components/CustomToolbar'
 import { AreaCaptureOverlay } from './components/AreaCaptureOverlay'
@@ -128,12 +129,6 @@ function App() {
 			<div className="tldraw-agent-container">
 				<div className="tldraw-canvas">
 					<Tldraw
-						// tldraw SDK license key. Required for any public/production deploy
-						// (the SDK enforces this client-side). Free in local dev without one.
-						// Set VITE_TLDRAW_LICENSE_KEY in .env, see .env.example. The value is
-						// embedded in the client bundle by design, so it is kept in a
-						// gitignored .env rather than committed.
-						licenseKey={import.meta.env.VITE_TLDRAW_LICENSE_KEY}
 						persistenceKey="tldraw-agent-demo"
 						tools={tools}
 						overrides={overrides}
@@ -150,6 +145,7 @@ function App() {
 					)}
 				</ErrorBoundary>
 			</div>
+			<QuotaModal />
 		</TldrawUiToastsProvider>
 	)
 }

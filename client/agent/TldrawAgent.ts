@@ -613,8 +613,12 @@ export class TldrawAgent {
 								const actionUtilType = this.actions.getAgentActionUtilType(action._type)
 								const actionUtil = this.actions.getAgentActionUtil(action._type)
 
-								// If the action is not in the mode's available actions, skip it
-								if (!availableActions.includes(actionUtilType)) {
+								// If the action is not in the mode's available actions, skip it.
+								// (Cast: the mode's `actions` is a narrow `as const` tuple, so a
+								// mode may legitimately omit some action types — e.g. review /
+								// setMyView in the area-capture demo — and we still need to test
+								// the wider action-type union against it.)
+								if (!(availableActions as readonly string[]).includes(actionUtilType)) {
 									return
 								}
 

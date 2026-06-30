@@ -60,6 +60,14 @@ function asLabelAlign(value: unknown): 'start' | 'middle' | 'end' | undefined {
 	}
 }
 
+/** The `_type` values `convertFocusedShapeToTldrawShape` knows how to convert. */
+const CONVERTIBLE_NON_GEO_TYPES = new Set(['text', 'line', 'arrow', 'note', 'draw', 'unknown'])
+
+/** Whether a focused shape `_type` maps to a real tldraw shape we can create. */
+export function isConvertibleFocusedType(type: string): boolean {
+	return CONVERTIBLE_NON_GEO_TYPES.has(type) || type in FOCUSED_TO_GEO_TYPES
+}
+
 /**
  * Convert a FocusedShape to a shape object to a tldraw shape using defaultShape for fallback values
  * @param editor - The tldraw editor instance
@@ -112,6 +120,18 @@ export function convertFocusedShapeToTldrawShape(
 		}
 		case 'unknown': {
 			return convertUnknownShapeToTldrawShape(editor, focusedShape, { defaultShape })
+		}
+		default: {
+			// The model occasionally emits a `_type` that isn't a valid FocusedShape
+			// (e.g. a `pen` shape inside a `create` action — `pen` is a separate
+			// action, not a shape). Fall back to the unknown-shape converter instead
+			// of returning undefined, which would crash the caller (and the whole
+			// tldraw canvas) on `.shape`.
+			return convertUnknownShapeToTldrawShape(
+				editor,
+				focusedShape as unknown as FocusedUnknownShape,
+				{ defaultShape }
+			)
 		}
 	}
 }
@@ -817,6 +837,14 @@ export function convertPartialFocusedShapeToTldrawShape(
 
 	// For all other shapes, require complete: true
 	if (!complete) {
+		return { shape: null, bindings: null, position: null }
+	}
+
+	// Skip shapes whose `_type` we can't convert (e.g. the model putting a `pen`
+	// shape inside a `create` action). Dropping the one shape lets the rest of the
+	// drawing complete, instead of crashing the canvas or littering a junk box.
+	if (!isConvertibleFocusedType((focusedShape as FocusedShape)._type)) {
+		console.warn('[create] skipping shape with unsupported _type:', focusedShape._type)
 		return { shape: null, bindings: null, position: null }
 	}
 
