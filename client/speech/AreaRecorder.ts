@@ -27,7 +27,6 @@ export class AreaRecorder {
 		}
 		recorder.start()
 		this.recorder = recorder
-		console.log('[capture] recording started')
 	}
 
 	/** Stop recording, release the mic, and resolve with the recorded clip. */
@@ -47,7 +46,6 @@ export class AreaRecorder {
 		}
 
 		const blob = new Blob(this.chunks, { type: this.mimeType || 'audio/webm' })
-		console.log(`[capture] recording stopped: ${blob.size} bytes`)
 		return blob
 	}
 

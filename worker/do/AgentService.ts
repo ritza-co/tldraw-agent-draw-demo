@@ -90,7 +90,6 @@ export class AgentService {
 		}
 
 		const { modelId, provider } = model
-		console.log('[worker] modelId:', modelId, 'provider:', provider, 'valid:', isValidModelName(modelId))
 		if (!isValidModelName(modelId)) {
 			throw new Error(`Model ${modelId} is not in AGENT_MODEL_DEFINITIONS`)
 		}
@@ -251,7 +250,6 @@ export class AgentService {
 				}
 			}
 
-			console.log('[worker] textStream total:', totalText.slice(0, 300))
 
 			// If we've finished receiving events, but there's still an incomplete event, we need to complete it
 			if (maybeIncompleteAction) {

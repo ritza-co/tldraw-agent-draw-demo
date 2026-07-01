@@ -59,12 +59,9 @@ export async function requestDrawInArea(
 	ensureMode(agent, 'working')
 	const before = agent.editor.getCurrentPageShapeIds().size
 	try {
-		console.log('[capture] starting agent.prompt')
 		await agent.prompt({ message: buildAreaMessage(text), contextItems: [area] })
-		console.log('[capture] agent.prompt complete, shapes added:', agent.editor.getCurrentPageShapeIds().size - before)
 		return agent.editor.getCurrentPageShapeIds().size - before
 	} catch (err) {
-		console.error('[capture] agent.prompt threw:', err)
 		throw err
 	} finally {
 		ensureMode(agent, 'idling')

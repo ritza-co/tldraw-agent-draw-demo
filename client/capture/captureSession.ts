@@ -76,7 +76,6 @@ export function startCaptureSession(bounds: BoxModel): string {
 
 	const id = nextId()
 	sessions.set([...sessions.get(), { id, bounds, status: 'recording' }])
-	console.log('[capture] session started', id, JSON.stringify(bounds))
 
 	const rec = new AreaRecorder()
 	recorder = rec
@@ -170,8 +169,6 @@ async function processQueue(): Promise<void> {
 				patchSession(id, { status: 'error', error: 'Did not catch any speech. Try again.' })
 				continue
 			}
-			console.log(`[capture] transcript for ${id}: "${text}"`)
-
 			const modelDef = getAgentModelDefinition(agentRef.modelName.getModelName())
 			if (!getApiKey(modelDef.provider)) {
 				patchSession(id, {
