@@ -157,6 +157,7 @@ function App() {
 			<div className="tldraw-agent-container">
 				<div className="tldraw-canvas">
 					<Tldraw
+						licenseKey="tldraw-2026-09-12/WyI3Sm1XaXZydiIsWyIqIl0sMTYsIjIwMjYtMDktMTIiXQ.ef10VujNAYKOgiuGtnGSCynOF2GonyTWyIoF54ixcfZ8rdlHomXR2YqnhL1/FDmhgOS8VoIp7gWdTfO4IwUBbw"
 						persistenceKey="tldraw-agent-demo"
 						tools={tools}
 						overrides={overrides}
