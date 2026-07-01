@@ -49,7 +49,8 @@ export class AgentDurableObject extends DurableObject<Environment> {
 		if (anthropicKey) envOverride.ANTHROPIC_API_KEY = anthropicKey
 		if (openaiKey) envOverride.OPENAI_API_KEY = openaiKey
 		if (googleKey) envOverride.GOOGLE_API_KEY = googleKey
-		if (openrouterKey) envOverride.OPENROUTER_API_KEY = openrouterKey
+		// Only use an OpenRouter key the user explicitly brought; never expose the server's key.
+		envOverride.OPENROUTER_API_KEY = openrouterKey ?? ''
 		const service = new AgentService(envOverride)
 
 		const response: { changes: Streaming<AgentAction>[] } = { changes: [] }
