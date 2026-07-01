@@ -43,6 +43,11 @@ export class AgentService {
 						const body = JSON.parse(init.body)
 						delete body.reasoning_effort
 						body.reasoning = { enabled: false }
+						// Anthropic models via OpenRouter reject prefill, so force JSON output
+						// via response_format instead so they don't emit prose preambles.
+						if (typeof body.model === 'string' && body.model.startsWith('anthropic/')) {
+							body.response_format = { type: 'json_object' }
+						}
 						init = { ...init, body: JSON.stringify(body) }
 					} catch {
 						// Leave the body untouched if it isn't JSON we can parse.
@@ -139,7 +144,8 @@ export class AgentService {
 		const isAnthropicModel = modelDefinition.name.startsWith('anthropic/')
 
 		// Assistant prefill forces the model to continue JSON rather than wrap it in markdown
-		// fences. Anthropic models reject prefill regardless of routing, so skip it for them.
+		// fences. Anthropic models reject prefill regardless of routing (native or via OpenRouter).
+		// OpenRouter non-Anthropic models accept prefill via the OpenAI-compatible API.
 		const canForceResponseStart =
 			provider === 'anthropic.messages' ||
 			provider === 'google.generative-ai' ||
@@ -194,6 +200,14 @@ export class AgentService {
 			for await (const text of textStream) {
 				totalText += text
 				buffer += text
+
+				// Models that don't support prefill may emit a prose preamble before the JSON.
+				// Trim everything before the first `{"actions"` so the parser can find the object.
+				if (!canForceResponseStart) {
+					const jsonStart = buffer.indexOf('{"actions"')
+					if (jsonStart > 0) buffer = buffer.slice(jsonStart)
+					else if (jsonStart === -1 && !buffer.includes('{')) buffer = ''
+				}
 
 				const partialObject = closeAndParseJson(buffer)
 				if (!partialObject) continue
