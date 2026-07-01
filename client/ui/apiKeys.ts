@@ -8,7 +8,7 @@ export const API_KEY_PROVIDERS = ['mistral', 'anthropic', 'openai', 'google', 'o
 export type ApiKeyProvider = (typeof API_KEY_PROVIDERS)[number]
 
 export const API_KEY_LABELS: Record<ApiKeyProvider, string> = {
-	mistral: 'Mistral (powers both drawing and voice)',
+	mistral: 'Mistral',
 	anthropic: 'Anthropic',
 	openai: 'OpenAI',
 	google: 'Google',

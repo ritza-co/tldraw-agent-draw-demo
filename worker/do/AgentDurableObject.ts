@@ -69,11 +69,14 @@ export class AgentDurableObject extends DurableObject<Environment> {
 				console.error('Stream error:', error)
 
 				// Send error through the stream
-				const errorData = `data: ${JSON.stringify({ error: error.message })}\n\n`
+				const errorMessage = typeof error?.message === 'string' ? error.message : JSON.stringify(error)
+				const errorData = `data: ${JSON.stringify({ error: errorMessage })}\n\n`
+				console.log('[worker] sending error to client:', errorData.slice(0, 200))
 				try {
 					await writer.write(encoder.encode(errorData))
 					await writer.close()
 				} catch (writeError) {
+					console.error('[worker] failed to write error:', writeError)
 					await writer.abort(writeError)
 				}
 			}

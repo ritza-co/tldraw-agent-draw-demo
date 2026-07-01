@@ -620,8 +620,10 @@ export class TldrawAgent {
 								// setMyView in the area-capture demo — and we still need to test
 								// the wider action-type union against it.)
 								if (!(availableActions as readonly string[]).includes(actionUtilType)) {
+									console.warn('[capture] action skipped (not in mode):', actionUtilType, action._type)
 									return
 								}
+								console.log('[capture] action:', actionUtilType, 'raw:', action._type)
 
 								// If there was a diff from an incomplete action, revert it so that we can reapply the action
 								// This must happen BEFORE sanitize so we're working with clean state
@@ -734,6 +736,7 @@ export class TldrawAgent {
 								throw new Error(data.error)
 							}
 
+							console.log('[capture] stream data:', JSON.stringify(data).slice(0, 200))
 							const agentAction: Streaming<AgentAction> = data
 							yield agentAction
 						} catch (err: any) {

@@ -82,6 +82,7 @@ export class AgentService {
 		}
 
 		const { modelId, provider } = model
+		console.log('[worker] modelId:', modelId, 'provider:', provider, 'valid:', isValidModelName(modelId))
 		if (!isValidModelName(modelId)) {
 			throw new Error(`Model ${modelId} is not in AGENT_MODEL_DEFINITIONS`)
 		}
@@ -126,18 +127,28 @@ export class AgentService {
 			}
 		}
 
-		// Add the assistant message to indicate the start of the actions
-		messages.push({
-			role: 'assistant',
-			content: '{"actions": [{"_type":',
-		})
-
 		// Configure thinking budgets based on model. We let models think using the think action, so we keep this as low as possible to minimize time to first token
 		// Gemini: 256 for thinking models, 0 otherwise
 		const geminiThinkingBudget = modelDefinition.thinking ? 256 : 0
 
-		// OpenAI: 'none' for non-reasoning models, 'minimal' otherwise
-		const openaiReasoningEffort = provider === 'openai.responses' ? 'none' : 'minimal'
+		// Only send reasoningEffort for native OpenAI/OpenRouter non-Anthropic models.
+		// Anthropic models (native or via OpenRouter) reject this parameter.
+		const isAnthropicModel = modelDefinition.name.startsWith('anthropic/')
+
+		// Assistant prefill forces the model to continue JSON rather than wrap it in markdown
+		// fences. Anthropic models reject prefill regardless of routing, so skip it for them.
+		const canForceResponseStart =
+			provider === 'anthropic.messages' ||
+			provider === 'google.generative-ai' ||
+			(modelDefinition.provider === 'openrouter' && !isAnthropicModel)
+
+		if (canForceResponseStart) {
+			messages.push({
+				role: 'assistant',
+				content: '{"actions": [{"_type":',
+			})
+		}
+		const openaiReasoningEffort = (provider === 'openai.responses' || isAnthropicModel) ? undefined : 'minimal'
 
 		try {
 			const { textStream } = streamText({
@@ -153,7 +164,7 @@ export class AgentService {
 						thinkingConfig: { thinkingBudget: geminiThinkingBudget },
 					},
 					openai: {
-						reasoningEffort: openaiReasoningEffort,
+						...(openaiReasoningEffort !== undefined && { reasoningEffort: openaiReasoningEffort }),
 					},
 				},
 				onAbort() {
@@ -165,20 +176,14 @@ export class AgentService {
 				},
 			})
 
-			// OpenRouter honors the assistant prefill we send (the model continues
-			// the partial JSON instead of restarting it, with no markdown fences),
-			// so it can force the response start just like the native Anthropic and
-			// Google providers.
-			const canForceResponseStart =
-				provider === 'anthropic.messages' ||
-				provider === 'google.generative-ai' ||
-				modelDefinition.provider === 'openrouter'
 			let buffer = canForceResponseStart ? '{"actions": [{"_type":' : ''
 			let cursor = 0
 			let maybeIncompleteAction: AgentAction | null = null
 
 			let startTime = Date.now()
+			let totalText = ''
 			for await (const text of textStream) {
+				totalText += text
 				buffer += text
 
 				const partialObject = closeAndParseJson(buffer)
@@ -222,6 +227,8 @@ export class AgentService {
 					}
 				}
 			}
+
+			console.log('[worker] textStream total:', totalText.slice(0, 300))
 
 			// If we've finished receiving events, but there's still an incomplete event, we need to complete it
 			if (maybeIncompleteAction) {

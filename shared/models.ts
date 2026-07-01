@@ -1,5 +1,5 @@
 export type AgentModelName = keyof typeof AGENT_MODEL_DEFINITIONS
-export type AgentModelProvider = 'openai' | 'anthropic' | 'google' | 'openrouter' | 'mistral'
+export type AgentModelProvider = 'openai' | 'anthropic' | 'google' | 'openrouter'
 
 export interface AgentModelDefinition {
 	name: AgentModelName
@@ -84,18 +84,18 @@ export const AGENT_MODEL_DEFINITIONS = {
 		provider: 'openrouter',
 	},
 
-	// Mistral models — a single Mistral key covers both drawing and voice transcription
-	'mistral-large-latest': {
-		name: 'mistral-large-latest',
-		id: 'mistral-large-latest',
-		provider: 'mistral',
+	'anthropic/claude-opus-4.8': {
+		name: 'anthropic/claude-opus-4.8',
+		id: 'anthropic/claude-opus-4.8',
+		provider: 'openrouter',
 	},
 
-	'mistral-small-latest': {
-		name: 'mistral-small-latest',
-		id: 'mistral-small-latest',
-		provider: 'mistral',
+	'google/gemini-2.5-pro': {
+		name: 'google/gemini-2.5-pro',
+		id: 'google/gemini-2.5-pro',
+		provider: 'openrouter',
 	},
+
 } as const
 
 export const DEFAULT_MODEL_NAME: AgentModelName = 'anthropic/claude-haiku-4.5'

@@ -13,6 +13,7 @@ import {
 	TldrawAgentAppProvider,
 } from './agent/TldrawAgentAppProvider'
 import { ApiKeysPanel } from './components/ApiKeysPanel'
+import { ModelPickerPanel } from './components/ModelPickerPanel'
 import { QuotaModal } from './components/QuotaModal'
 import { CustomHelperButtons } from './components/CustomHelperButtons'
 import { CustomToolbar } from './components/CustomToolbar'
@@ -145,6 +146,11 @@ function App() {
 				</div>
 			</div>
 			<ApiKeysPanel />
+			{app && (
+				<TldrawAgentAppContextProvider app={app}>
+					<ModelPickerPanel />
+				</TldrawAgentAppContextProvider>
+			)}
 			<QuotaModal />
 		</TldrawUiToastsProvider>
 	)
