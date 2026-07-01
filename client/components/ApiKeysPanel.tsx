@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { API_KEY_LABELS, API_KEY_PROVIDERS, ApiKeyProvider, getApiKey, setApiKey } from '../ui/apiKeys'
+import { HelpButton } from './HelpModal'
 
 interface ApiKeysPanelProps {
 	onSave?: () => void
@@ -38,7 +39,7 @@ export function ApiKeysPanel({ onSave }: ApiKeysPanelProps) {
 	const mistralKeySet = !!getApiKey('mistral')
 
 	return (
-		<div style={{ position: 'fixed', top: 8, left: '50%', transform: 'translateX(-50%)', zIndex: 1000 }}>
+		<div style={{ position: 'fixed', top: 8, left: '50%', transform: 'translateX(-50%)', zIndex: 1000, display: 'flex', gap: 6 }}>
 			<button
 				onClick={() => setOpen((o) => !o)}
 				style={{
@@ -179,6 +180,7 @@ export function ApiKeysPanel({ onSave }: ApiKeysPanelProps) {
 					</div>
 				</div>
 			)}
+			<HelpButton />
 		</div>
 	)
 }
