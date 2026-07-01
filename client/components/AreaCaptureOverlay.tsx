@@ -1,4 +1,4 @@
-import { useValue } from 'tldraw'
+import { useEditor, useValue } from 'tldraw'
 import {
 	captureSessions$,
 	dismissSession,
@@ -40,6 +40,10 @@ const PILL_STYLE: React.CSSProperties = {
 
 function SessionOverlay({ session }: { session: CaptureSessionState }) {
 	const { bounds } = session
+	const editor = useEditor()
+	const zoom = useValue('zoom', () => editor.getZoomLevel(), [editor])
+	// Counter-scale so the pill stays a fixed physical size regardless of zoom.
+	const scale = 1 / zoom
 
 	return (
 		<>
@@ -66,7 +70,8 @@ function SessionOverlay({ session }: { session: CaptureSessionState }) {
 					position: 'absolute',
 					top: bounds.y,
 					left: bounds.x + bounds.w,
-					transform: 'translate(8px, 0)',
+					transform: `translate(${8 * scale}px, 0) scale(${scale})`,
+					transformOrigin: 'top left',
 					pointerEvents: 'all',
 				}}
 			>
@@ -84,7 +89,7 @@ function SessionOverlay({ session }: { session: CaptureSessionState }) {
 							whiteSpace: 'nowrap',
 						}}
 					>
-						Stop
+						Stop recording
 					</button>
 				)}
 				{session.status === 'queued' && <div style={PILL_STYLE}>Queued…</div>}
