@@ -3,6 +3,8 @@ import { AreaRecorder } from '../speech/AreaRecorder'
 import { transcribe } from '../speech/transcribe'
 import { requestDrawInArea } from './requestDrawInArea'
 import { reportPossibleQuotaError } from '../ui/quotaError'
+import { getApiKey } from '../ui/apiKeys'
+import { getAgentModelDefinition } from '../../shared/models'
 import type { TldrawAgent } from '../agent/TldrawAgent'
 
 export type CaptureStatus = 'recording' | 'queued' | 'transcribing' | 'drawing' | 'error'
@@ -169,6 +171,15 @@ async function processQueue(): Promise<void> {
 				continue
 			}
 			console.log(`[capture] transcript for ${id}: "${text}"`)
+
+			const modelDef = getAgentModelDefinition(agentRef.modelName.getModelName())
+			if (!getApiKey(modelDef.provider)) {
+				patchSession(id, {
+					status: 'error',
+					error: `No ${modelDef.provider} API key set. Open "API keys" to add one.`,
+				})
+				continue
+			}
 
 			patchSession(id, { status: 'drawing' })
 			let drawnShapes = 0

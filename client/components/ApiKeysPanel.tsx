@@ -1,7 +1,11 @@
 import { useEffect, useState } from 'react'
 import { API_KEY_LABELS, API_KEY_PROVIDERS, ApiKeyProvider, getApiKey, setApiKey } from '../ui/apiKeys'
 
-export function ApiKeysPanel() {
+interface ApiKeysPanelProps {
+	onSave?: () => void
+}
+
+export function ApiKeysPanel({ onSave }: ApiKeysPanelProps) {
 	const [open, setOpen] = useState(false)
 	const [values, setValues] = useState<Record<ApiKeyProvider, string>>(() =>
 		Object.fromEntries(API_KEY_PROVIDERS.map((p) => [p, ''])) as Record<ApiKeyProvider, string>
@@ -27,6 +31,7 @@ export function ApiKeysPanel() {
 		for (const provider of API_KEY_PROVIDERS) {
 			setApiKey(provider, values[provider])
 		}
+		onSave?.()
 		setOpen(false)
 	}
 

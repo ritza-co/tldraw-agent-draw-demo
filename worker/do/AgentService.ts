@@ -59,6 +59,9 @@ export class AgentService {
 		if (provider === 'openrouter') {
 			return this.openrouter.chat(modelDefinition.id)
 		}
+		if (provider === 'mistral') {
+			return this.mistral(modelDefinition.id)
+		}
 		return this[provider](modelDefinition.id)
 	}
 
@@ -148,7 +151,10 @@ export class AgentService {
 				content: '{"actions": [{"_type":',
 			})
 		}
-		const openaiReasoningEffort = (provider === 'openai.responses' || isAnthropicModel) ? undefined : 'minimal'
+		const openaiReasoningEffort =
+			provider === 'openai.responses' || isAnthropicModel || provider === 'mistral.chat'
+				? undefined
+				: 'minimal'
 
 		try {
 			const { textStream } = streamText({
@@ -165,6 +171,9 @@ export class AgentService {
 					},
 					openai: {
 						...(openaiReasoningEffort !== undefined && { reasoningEffort: openaiReasoningEffort }),
+					},
+					mistral: {
+						responseFormat: { type: 'json_object' },
 					},
 				},
 				onAbort() {

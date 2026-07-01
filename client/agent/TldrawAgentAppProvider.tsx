@@ -3,6 +3,8 @@ import { useEditor, useToasts, useValue } from 'tldraw'
 import { TldrawAgent } from './TldrawAgent'
 import { TldrawAgentApp } from './TldrawAgentApp'
 import { reportPossibleQuotaError } from '../ui/quotaError'
+import { getApiKey } from '../ui/apiKeys'
+import { AgentModelProvider, getAgentModelDefinition, getDefaultModelForProviders } from '../../shared/models'
 
 const TldrawAgentAppContext = createContext<TldrawAgentApp | null>(null)
 
@@ -87,6 +89,19 @@ export const TldrawAgentAppProvider = memo(function TldrawAgentAppProvider({
 
 		// Ensure at least one agent exists (creates one if none were loaded)
 		const defaultAgent = instance.agents.ensureAtLeastOneAgent()
+
+		// If the current model's provider has no key, switch to the best available one.
+		// This handles fresh sessions (default model is openrouter but no key is set)
+		// and returning sessions where a key was removed since last visit.
+		const currentProvider = getAgentModelDefinition(defaultAgent.modelName.getModelName()).provider
+		if (!getApiKey(currentProvider)) {
+			const available = new Set<AgentModelProvider>()
+			for (const p of ['anthropic', 'google', 'openai', 'openrouter', 'mistral'] as const) {
+				if (getApiKey(p)) available.add(p)
+			}
+			const next = getDefaultModelForProviders(available)
+			if (next) defaultAgent.modelName.setModelName(next)
+		}
 
 		// Start auto-saving (must be after loadState to avoid saving during load)
 		instance.persistence.startAutoSave()

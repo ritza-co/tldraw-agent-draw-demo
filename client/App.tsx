@@ -23,6 +23,8 @@ import { AllContextHighlights } from './components/highlights/ContextHighlights'
 import { AreaCaptureTool } from './tools/AreaCaptureTool'
 import { TargetAreaTool } from './tools/TargetAreaTool'
 import { TargetShapeTool } from './tools/TargetShapeTool'
+import { getApiKey } from './ui/apiKeys'
+import { AgentModelProvider, getAgentModelDefinition, getDefaultModelForProviders } from '../shared/models'
 
 function ToolPreselector() {
 	const editor = useEditor()
@@ -98,12 +100,32 @@ const overrides: TLUiOverrides = {
 	},
 }
 
+function getAvailableDrawingProviders(): Set<AgentModelProvider> {
+	const providers = new Set<AgentModelProvider>()
+	for (const p of ['anthropic', 'google', 'openai', 'openrouter', 'mistral'] as const) {
+		if (getApiKey(p)) providers.add(p)
+	}
+	return providers
+}
+
 function App() {
 	const [app, setApp] = useState<TldrawAgentApp | null>(null)
+	const [keysVersion, setKeysVersion] = useState(0)
 
 	const handleUnmount = useCallback(() => {
 		setApp(null)
 	}, [])
+
+	const handleApiKeysSave = useCallback(() => {
+		setKeysVersion((v) => v + 1)
+		const agent = app?.agents.getAgent()
+		if (!agent) return
+		const current = agent.modelName.getModelName()
+		const currentProvider = getAgentModelDefinition(current).provider
+		if (getApiKey(currentProvider)) return // current model still has a key, nothing to do
+		const next = getDefaultModelForProviders(getAvailableDrawingProviders())
+		if (next) agent.modelName.setModelName(next)
+	}, [app])
 
 	const components: TLComponents = useMemo(() => {
 		return {
@@ -145,10 +167,10 @@ function App() {
 					</Tldraw>
 				</div>
 			</div>
-			<ApiKeysPanel />
+			<ApiKeysPanel onSave={handleApiKeysSave} />
 			{app && (
 				<TldrawAgentAppContextProvider app={app}>
-					<ModelPickerPanel />
+					<ModelPickerPanel keysVersion={keysVersion} />
 				</TldrawAgentAppContextProvider>
 			)}
 			<QuotaModal />

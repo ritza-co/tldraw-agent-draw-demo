@@ -1,5 +1,5 @@
 export type AgentModelName = keyof typeof AGENT_MODEL_DEFINITIONS
-export type AgentModelProvider = 'openai' | 'anthropic' | 'google' | 'openrouter'
+export type AgentModelProvider = 'openai' | 'anthropic' | 'google' | 'openrouter' | 'mistral'
 
 export interface AgentModelDefinition {
 	name: AgentModelName
@@ -11,6 +11,13 @@ export interface AgentModelDefinition {
 }
 
 export const AGENT_MODEL_DEFINITIONS = {
+	// Mistral models (also used for transcription, so this is the always-available fallback)
+	'mistral-medium-3.5': {
+		name: 'mistral-medium-3.5',
+		id: 'mistral-medium-3.5',
+		provider: 'mistral',
+	},
+
 	// Anthropic models
 	// sonnet 4.5 is recommended
 	'claude-sonnet-4-5': {
@@ -98,7 +105,28 @@ export const AGENT_MODEL_DEFINITIONS = {
 
 } as const
 
-export const DEFAULT_MODEL_NAME: AgentModelName = 'anthropic/claude-haiku-4.5'
+export const DEFAULT_MODEL_NAME: AgentModelName = 'mistral-medium-3.5'
+
+/** The default model to use when a key for that provider is available. */
+export const DEFAULT_MODEL_BY_PROVIDER: Record<AgentModelProvider, AgentModelName> = {
+	anthropic: 'claude-sonnet-4-5',
+	google: 'gemini-2.5-flash',
+	openai: 'gpt-5.2-2025-12-11',
+	openrouter: 'anthropic/claude-haiku-4.5',
+	mistral: 'mistral-medium-3.5',
+}
+
+/**
+ * Given a set of providers that have keys, return the best default model.
+ * Prefers direct providers over openrouter, and mistral last (everyone has it
+ * for transcription, so it's the universal fallback for drawing too).
+ */
+export function getDefaultModelForProviders(availableProviders: Set<AgentModelProvider>): AgentModelName {
+	for (const provider of ['anthropic', 'google', 'openai', 'openrouter', 'mistral'] as const) {
+		if (availableProviders.has(provider)) return DEFAULT_MODEL_BY_PROVIDER[provider]
+	}
+	return DEFAULT_MODEL_BY_PROVIDER['mistral']
+}
 
 /**
  * Check if a string is a valid AgentModelName.

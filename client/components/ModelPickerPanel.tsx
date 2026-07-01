@@ -3,10 +3,12 @@ import { AGENT_MODEL_DEFINITIONS, AgentModelName } from '../../shared/models'
 import { useAgent } from '../agent/TldrawAgentAppProvider'
 import { getApiKey } from '../ui/apiKeys'
 
-export function ModelPickerPanel() {
+export function ModelPickerPanel({ keysVersion }: { keysVersion: number }) {
 	const agent = useAgent()
 	const modelName = useValue('modelName', () => agent.modelName.getModelName(), [agent])
 
+	// keysVersion changes whenever API keys are saved, forcing a re-read of localStorage
+	void keysVersion
 	const availableModels = Object.values(AGENT_MODEL_DEFINITIONS).filter(
 		(model) => !!getApiKey(model.provider)
 	)
