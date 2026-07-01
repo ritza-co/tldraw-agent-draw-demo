@@ -170,7 +170,9 @@ async function processQueue(): Promise<void> {
 				continue
 			}
 			const modelDef = getAgentModelDefinition(agentRef.modelName.getModelName())
-			if (!getApiKey(modelDef.provider)) {
+			// Mistral is covered by the server's key; all other providers require BYOK.
+			const needsByok = modelDef.provider !== 'mistral'
+			if (needsByok && !getApiKey(modelDef.provider)) {
 				patchSession(id, {
 					status: 'error',
 					error: `No ${modelDef.provider} API key set. Open "API keys" to add one.`,
