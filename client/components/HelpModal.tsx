@@ -1,6 +1,18 @@
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
 
+const SEEN_KEY = 'tldraw-agent-draw:seen-help'
+
+function hasSeenHelp(): boolean {
+	if (typeof localStorage === 'undefined') return true
+	return localStorage.getItem(SEEN_KEY) === '1'
+}
+
+function markHelpSeen(): void {
+	if (typeof localStorage === 'undefined') return
+	localStorage.setItem(SEEN_KEY, '1')
+}
+
 const AgentDrawIcon = () => (
 	<svg
 		xmlns="http://www.w3.org/2000/svg"
@@ -26,7 +38,12 @@ const AgentDrawIcon = () => (
 )
 
 export function HelpButton() {
-	const [open, setOpen] = useState(false)
+	const [open, setOpen] = useState(() => !hasSeenHelp())
+
+	const close = () => {
+		setOpen(false)
+		markHelpSeen()
+	}
 
 	return (
 		<>
@@ -52,7 +69,7 @@ export function HelpButton() {
 				<div
 					role="dialog"
 					aria-modal="true"
-					onClick={() => setOpen(false)}
+					onClick={close}
 					style={{
 						position: 'fixed',
 						inset: 0,
@@ -81,15 +98,18 @@ export function HelpButton() {
 						<ol style={{ margin: '0 0 20px', paddingLeft: 20, lineHeight: 1.8, fontSize: 15 }}>
 							<li>Select the <strong>agent draw tool</strong> (<AgentDrawIcon />) from the toolbar.</li>
 							<li>Click and drag on the canvas to <strong>draw a rectangle</strong> over the area where you want shapes to appear.</li>
-							<li>Release the mouse. <strong>Recording starts automatically</strong> — speak your request.</li>
+							<li>Release the mouse. <strong>Recording starts automatically</strong>, speak your request.</li>
 							<li>Click <strong>Stop recording</strong> when you're done. The agent will transcribe your voice and draw the shapes.</li>
 						</ol>
+						<p style={{ margin: '0 0 8px', lineHeight: 1.5, fontSize: 14, color: '#6b7280' }}>
+							Both transcription and drawing use Mistral, provided free in this demo.
+						</p>
 						<p style={{ margin: '0 0 20px', lineHeight: 1.5, fontSize: 14, color: '#6b7280' }}>
-							Both transcription and drawing use Mistral, provided free in this demo. To use a more capable model for drawing, add your own API key via the <strong>API keys</strong> button.
+							To use a more capable model for drawing, add your own API key via the <strong>API keys</strong> button.
 						</p>
 						<div style={{ display: 'flex', justifyContent: 'flex-end' }}>
 							<button
-								onClick={() => setOpen(false)}
+								onClick={close}
 								style={{
 									padding: '8px 16px',
 									borderRadius: 8,
