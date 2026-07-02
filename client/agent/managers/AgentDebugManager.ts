@@ -15,10 +15,12 @@ export interface AgentDebugFlags {
 	logCompletedActions: boolean
 }
 
+// Default all logging on in local dev so failures (e.g. a model returning malformed
+// JSON) are visible without manually toggling flags from the console.
 const DEFAULT_DEBUG_FLAGS: AgentDebugFlags = {
-	logSystemPrompt: false,
-	logMessages: false,
-	logCompletedActions: false,
+	logSystemPrompt: import.meta.env.DEV,
+	logMessages: import.meta.env.DEV,
+	logCompletedActions: import.meta.env.DEV,
 }
 
 /**

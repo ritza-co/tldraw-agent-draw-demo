@@ -12,7 +12,7 @@ import { Environment } from '../environment'
 import { buildMessages } from '../prompt/buildMessages'
 import { buildSystemPrompt } from '../prompt/buildSystemPrompt'
 import { getModelName } from '../prompt/getModelName'
-import { closeAndParseJson } from './closeAndParseJson'
+import { actionShorthandToActionsJson, closeAndParseJson } from './closeAndParseJson'
 
 export class AgentService {
 	openai: OpenAIProvider
@@ -37,12 +37,18 @@ export class AgentService {
 			// pipeline stays fast) we need OpenRouter's unified `reasoning` switch.
 			// Rewrite each outgoing request body to drop reasoning_effort and set
 			// reasoning.enabled = false.
+			//
+			// google/gemini-2.5-pro is exempt: its OpenRouter endpoint rejects
+			// reasoning.enabled = false outright ("Reasoning is mandatory for this
+			// endpoint and cannot be disabled"), so forcing it off 400s every request.
 			fetch: async (input, init) => {
 				if (init?.body && typeof init.body === 'string') {
 					try {
 						const body = JSON.parse(init.body)
 						delete body.reasoning_effort
-						body.reasoning = { enabled: false }
+						if (body.model !== 'google/gemini-2.5-pro') {
+							body.reasoning = { enabled: false }
+						}
 						// Anthropic models via OpenRouter reject prefill, so force JSON output
 						// via response_format instead so they don't emit prose preambles.
 						if (typeof body.model === 'string' && body.model.startsWith('anthropic/')) {
@@ -133,6 +139,7 @@ export class AgentService {
 				console.log('[DEBUG] Messages:\n', JSON.stringify(promptMessages, null, 2))
 			}
 		}
+		const logStream = debugPart?.logMessages ?? false
 
 		// Configure thinking budgets based on model. We let models think using the think action, so we keep this as low as possible to minimize time to first token
 		// Gemini: 256 for thinking models, 0 otherwise
@@ -208,7 +215,16 @@ export class AgentService {
 					else if (jsonStart === -1 && !buffer.includes('{')) buffer = ''
 				}
 
-				const partialObject = closeAndParseJson(buffer)
+				// Weaker models can drift into echoing the `[ACTION]: {...}` / `[THOUGHT]: ...`
+				// shorthand that completed actions are rendered as in their own chat history
+				// (see PromptPartDefinitions.ts), instead of the `{"actions": [...]}` schema.
+				// If that's what we got, convert it to the expected shape rather than dropping
+				// the whole response.
+				const parseBuffer = buffer.includes('{"actions"')
+					? buffer
+					: (actionShorthandToActionsJson(buffer) ?? buffer)
+
+				const partialObject = closeAndParseJson(parseBuffer)
 				if (!partialObject) continue
 
 				const actions = partialObject.actions
@@ -257,6 +273,14 @@ export class AgentService {
 					...maybeIncompleteAction,
 					complete: true,
 					time: Date.now() - startTime,
+				}
+			}
+
+			if (logStream) {
+				console.log(`[DEBUG] Raw response (${modelDefinition.name}):\n`, totalText)
+				console.log(`[DEBUG] Actions parsed: ${cursor}`)
+				if (cursor === 0) {
+					console.warn(`[DEBUG] No actions parsed from ${modelDefinition.name} response`)
 				}
 			}
 		} catch (error: any) {

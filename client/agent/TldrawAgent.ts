@@ -193,9 +193,9 @@ export class TldrawAgent {
 		if (state.modelName) {
 			this.modelName.setModelName(state.modelName)
 		}
-		if (state.debugFlags) {
-			this.debug.setDebugFlags(state.debugFlags)
-		}
+		// Debug flags are intentionally not restored from persisted state: they're a
+		// dev-tool concern (see AgentDebugManager's DEV-mode default), and restoring
+		// stale `false` values from localStorage would silently defeat that default.
 	}
 
 	/**
