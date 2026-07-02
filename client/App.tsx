@@ -13,6 +13,7 @@ import {
 	TldrawAgentAppProvider,
 } from './agent/TldrawAgentAppProvider'
 import { ApiKeysPanel } from './components/ApiKeysPanel'
+import { CanvasErrorBoundary } from './components/CanvasErrorBoundary'
 import { ModelPickerPanel } from './components/ModelPickerPanel'
 import { QuotaModal } from './components/QuotaModal'
 import { CustomHelperButtons } from './components/CustomHelperButtons'
@@ -156,16 +157,18 @@ function App() {
 		<TldrawUiToastsProvider>
 			<div className="tldraw-agent-container">
 				<div className="tldraw-canvas">
-					<Tldraw
-						licenseKey="tldraw-2026-09-12/WyI3Sm1XaXZydiIsWyIqIl0sMTYsIjIwMjYtMDktMTIiXQ.ef10VujNAYKOgiuGtnGSCynOF2GonyTWyIoF54ixcfZ8rdlHomXR2YqnhL1/FDmhgOS8VoIp7gWdTfO4IwUBbw"
-						persistenceKey="tldraw-agent-demo"
-						tools={tools}
-						overrides={overrides}
-						components={components}
-					>
-						<TldrawAgentAppProvider onMount={setApp} onUnmount={handleUnmount} />
-						<ToolPreselector />
-					</Tldraw>
+					<CanvasErrorBoundary>
+						<Tldraw
+							licenseKey="tldraw-2026-09-12/WyI3Sm1XaXZydiIsWyIqIl0sMTYsIjIwMjYtMDktMTIiXQ.ef10VujNAYKOgiuGtnGSCynOF2GonyTWyIoF54ixcfZ8rdlHomXR2YqnhL1/FDmhgOS8VoIp7gWdTfO4IwUBbw"
+							persistenceKey="tldraw-agent-demo"
+							tools={tools}
+							overrides={overrides}
+							components={components}
+						>
+							<TldrawAgentAppProvider onMount={setApp} onUnmount={handleUnmount} />
+							<ToolPreselector />
+						</Tldraw>
+					</CanvasErrorBoundary>
 				</div>
 			</div>
 			<ApiKeysPanel onSave={handleApiKeysSave} />

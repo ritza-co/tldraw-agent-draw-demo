@@ -11,11 +11,9 @@ export function ApiKeysPanel({ onSave }: ApiKeysPanelProps) {
 	const [values, setValues] = useState<Record<ApiKeyProvider, string>>(() =>
 		Object.fromEntries(API_KEY_PROVIDERS.map((p) => [p, ''])) as Record<ApiKeyProvider, string>
 	)
-	const [showMistralError, setShowMistralError] = useState(false)
 
 	useEffect(() => {
 		if (!open) return
-		setShowMistralError(false)
 		setValues(
 			Object.fromEntries(API_KEY_PROVIDERS.map((p) => [p, getApiKey(p)])) as Record<
 				ApiKeyProvider,
@@ -25,10 +23,6 @@ export function ApiKeysPanel({ onSave }: ApiKeysPanelProps) {
 	}, [open])
 
 	function save() {
-		if (!values['mistral'].trim()) {
-			setShowMistralError(true)
-			return
-		}
 		for (const provider of API_KEY_PROVIDERS) {
 			setApiKey(provider, values[provider])
 		}
@@ -36,7 +30,7 @@ export function ApiKeysPanel({ onSave }: ApiKeysPanelProps) {
 		setOpen(false)
 	}
 
-	const mistralKeySet = !!getApiKey('mistral')
+	const anyKeySet = API_KEY_PROVIDERS.some((p) => !!getApiKey(p))
 
 	return (
 		<div style={{ position: 'fixed', top: 8, left: '50%', transform: 'translateX(-50%)', zIndex: 1000, display: 'flex', gap: 6 }}>
@@ -46,7 +40,7 @@ export function ApiKeysPanel({ onSave }: ApiKeysPanelProps) {
 					padding: '6px 12px',
 					borderRadius: 8,
 					border: '1px solid #d1d5db',
-					background: mistralKeySet ? '#ecfdf5' : '#fff',
+					background: anyKeySet ? '#ecfdf5' : '#fff',
 					color: '#111',
 					font: '500 13px/1 system-ui, sans-serif',
 					cursor: 'pointer',
@@ -55,7 +49,7 @@ export function ApiKeysPanel({ onSave }: ApiKeysPanelProps) {
 				}}
 				title="Set the API keys used for this session"
 			>
-				🔑 API keys{mistralKeySet ? ' ✓' : ''}
+				🔑 API keys{anyKeySet ? ' ✓' : ''}
 			</button>
 
 			{open && (
@@ -77,46 +71,33 @@ export function ApiKeysPanel({ onSave }: ApiKeysPanelProps) {
 					}}
 				>
 					<p style={{ margin: '0 0 12px', color: '#374151' }}>
-						Keys are stored only in this browser and never saved on the server. The Mistral
-						key is used for voice transcription. Add an optional key below to unlock
-						additional drawing models.
+						Keys are stored only in this browser and never saved on the server. A free
+						Mistral key is provided for this demo, add your own below to use a different
+						one, or add an optional key to unlock additional drawing models.
 					</p>
 
-					{/* Required */}
-					{(['mistral'] as const).map((provider) => {
-						const hasError = showMistralError
-						return (
-							<label key={provider} style={{ display: 'block', marginBottom: 10 }}>
-								<span style={{ display: 'block', marginBottom: 3, fontWeight: 500 }}>
-									{API_KEY_LABELS[provider]}
-									<span style={{ color: '#dc2626', marginLeft: 3 }}>*</span>
-								</span>
-								<input
-									type="password"
-									autoComplete="off"
-									value={values[provider]}
-									placeholder="mistral API key"
-									onChange={(e) => {
-										setValues((v) => ({ ...v, [provider]: e.target.value }))
-										if (e.target.value.trim()) setShowMistralError(false)
-									}}
-									style={{
-										width: '100%',
-										padding: '6px 8px',
-										borderRadius: 6,
-										border: hasError ? '1px solid #dc2626' : '1px solid #d1d5db',
-										font: '13px monospace',
-										boxSizing: 'border-box',
-									}}
-								/>
-								{hasError && (
-									<span style={{ color: '#dc2626', fontSize: 12, marginTop: 3, display: 'block' }}>
-										Mistral key is required
-									</span>
-								)}
-							</label>
-						)
-					})}
+					{(['mistral'] as const).map((provider) => (
+						<label key={provider} style={{ display: 'block', marginBottom: 10 }}>
+							<span style={{ display: 'block', marginBottom: 3, fontWeight: 500 }}>
+								{API_KEY_LABELS[provider]}
+							</span>
+							<input
+								type="password"
+								autoComplete="off"
+								value={values[provider]}
+								placeholder="mistral API key (optional, demo key used otherwise)"
+								onChange={(e) => setValues((v) => ({ ...v, [provider]: e.target.value }))}
+								style={{
+									width: '100%',
+									padding: '6px 8px',
+									borderRadius: 6,
+									border: '1px solid #d1d5db',
+									font: '13px monospace',
+									boxSizing: 'border-box',
+								}}
+							/>
+						</label>
+					))}
 
 					{/* Optional */}
 					<div style={{ borderTop: '1px solid #e5e7eb', margin: '12px 0 10px' }}>
